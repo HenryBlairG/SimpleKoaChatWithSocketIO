@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Audiowide">
+        <style>
+            * {
+                font-family: 'Audiowide';
+            }
+
+            body {
+                position: absolute;
+                background: rgb(50, 200, 230);
+                align-content: center;
+                display: inline-block;
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                height: 90%;
+                width: 95%;
+            }
+
+            div {
+                position:relative;
+                margin: 10px;
+                border-radius: 20px;
+                padding: 10px;
+            }
+
+            form {
+                margin: 10px;
+                border-radius: 20px;
+                width: 80%;
+            }
+
+            textarea {
+                font-family: "Courier New", Courier, monospace;
+                background: rgb(80, 216, 230);
+                color: black;
+                border-radius: 20px;
+                padding-inline-start: 15px;
+                padding-inline-end: 15px;
+                overflow: hidden;
+                width: 90%;
+                outline: none;
+                resize: none;
+            }
+
+            button {
+                background: rgb(80, 216, 230);
+                color: black;
+                margin: 10px;
+                border-radius: 20px;
+                padding: 10px;
+                width: 20%;
+                outline: none;
+            }
+
+            p {
+                font-family: "Courier New", Courier, monospace;
+                position: relative;
+                padding-inline-start: 15px;
+                padding-inline-end: 15px;
+                background: rgb(80, 216, 230);
+                border-radius: 20px;
+                color: black;
+                scroll-snap-align: end;
+            }
+
+            .room-list {
+                background: rgb(235, 235, 133);
+                color: black;
+                width: 30%;
+                height: 100%;
+                overflow: auto;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .room-chat {
+                background: rgb(235, 235, 133);
+                color: black;
+                width: 70%;
+                height: 100%;
+                overflow: auto;
+                display: flex;
+                flex-direction: row;
+            }
+
+            .chat-list {
+                background: rgb(80, 216, 230);
+                color: black;
+                width: 20%;
+                overflow: auto;
+                display: flex;
+                flex-direction: column;
+                flex-grow: inherit;
+            }
+
+            .chat-display {
+                background: rgb(235, 235, 133);
+                color: black;
+                width: 80%;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                flex-grow: inherit;
+            }
+
+            .chat-history {
+                font-family: "Courier New", Courier, monospace;
+                background: rgb(235, 235, 133);
+                color: black;
+                height: 80%;
+                overflow: auto;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .chat-controls {
+                background: rgb(235, 235, 133);
+                color:black;
+                overflow: auto;
+                display: flex;
+                flex-direction: row;
+            }
+        </style>
+    </head>
+    <body>
+        <br>
+        <div class="room-list" >            
+            <h1 align="center">Rooms</h1>
+            <br>
+            <div class="userOptions" id="userBoard">
+                <div class="userForm">
+                    <form class="name-form" id="nameBox">
+                        <input type="text" name="username" id="nameBox">
+                    </form>
+                    <button type="button" onclick="setName()">Set Name</button>
+                </div>
+                <br>
+                <div class="roomForm">
+                    <form class="room-form" id="roomBox">
+                        <input type="text" name="roomname" id="roomBox">
+                    </form>
+                    <button type="button" onclick="newRoom()">New Room</button>
+                </div>
+            </div>
+            <br>
+            <div class="rooms" id="roomList">
+                <!--
+                    Lista de salas de Chat
+                -->
+            </div>         
+        </div>
+        <br>
+        <div class="room-chat">
+            <!--
+            <div class="chat-list" id="chatList">
+                <h2 align="center">Users in Room</h2>
+            </div>
+            -->
+            <div class="chat-display">
+                <h2 align="center">Messages</h2>
+                <div class="chat-history" id="chatHistory">
+                    <!--
+                        Aqui espacio donde se crean los mensajes
+                    -->
+                </div>
+                <br>
+                <div class="chat-controls">
+                    <form class="chat-form" id="chatBox">
+                        <textarea name="msg" id="chatBox"></textarea>
+                    </form>
+                    <button type="button" onclick="sendMsg()">SEND</button>
+                </div>
+            </div>
+        </div>
+        <script src="/socket.io/socket.io.js">
+        </script>
+        <script>
+            let u_name = '';
+            let current_room = '';
+            let socket = io();
+            socket.on(
+                'rooms_available',
+                async function getLoby(rooms){
+                    let loby = document.getElementById("roomList");
+                    loby.innerHTML = '';
+                    rooms.forEach(room => {
+                        let btn = document.createElement("input");
+                        btn.setAttribute("id", "btn-"+room.roomName);
+                        btn.setAttribute("type", "button");
+                        btn.addEventListener('click', function (){
+                            getRoom(room.roomName);
+                        });
+                        btn.value = room.roomName;
+                        loby.appendChild(btn);
+                    });
+                }
+            );
+
+            socket.on(
+                'new room',
+                async function appendRoom(r_name){
+                    let loby = document.getElementById("roomList");
+                    let btn = document.createElement("input");
+                    btn.setAttribute("id", "btn-"+r_name);
+                    btn.setAttribute("type", "button");
+                    btn.addEventListener('click', function (){
+                        getRoom(r_name);
+                    });
+                    btn.value = r_name;
+                    loby.appendChild(btn);
+                    current_room = r_name;
+                }
+            );
+
+            socket.on(
+                'get room',
+                async function renderRoom(resp){
+                    let history = document.getElementById("chatHistory");
+                    resp.forEach(msg => {
+                        if('!!!!!!!!!!' != msg.msgContent){
+                            history.innerHTML += "<p>" + msg.createdAt + " " + msg.userName + ": " + msg.msgContent + "</p>";
+                        }
+                        
+                    });
+                }
+            );
+
+            socket.on(
+                'chat message',
+                async function updateChat(msg){
+                    if (msg.room == current_room){
+                        let history = document.getElementById("chatHistory");
+                        history.innerHTML += "<p>" + msg.timestamp + " " + msg.name + ": " + msg.cont + "</p>";
+                    }
+                }
+            );
+
+            async function setName(){
+                let name = document
+                    .getElementById("nameBox")
+                    .username
+                    .value;
+                let uboard = document.getElementById("userBoard");
+                uboard.innerHTML = "<p>Username: " + name + "</p>" + uboard.innerHTML;
+                u_name = name;
+            };
+
+            async function newRoom(){
+                let r_name = document
+                    .getElementById("roomBox")
+                    .roomname
+                    .value;
+                socket.emit('new room', r_name);
+            };
+
+            async function getRoom(r_name){
+                let uboard = document.getElementById("userBoard");
+                uboard.innerHTML = "<p>Room: " + r_name + "</p>" + uboard.innerHTML;
+                let history = document.getElementById("chatHistory");
+                history.innerHTML = '';
+                current_room = r_name;
+                socket.emit(
+                    'get room',
+                    r_name
+                );
+            };
+
+            async function sendMsg(){
+                let chatbox = document.getElementById("chatBox");
+                let msg = {};
+                msg.room = current_room || u_name + 'Room';
+                msg.name = u_name || 'Anonymous';
+                msg.cont = chatbox.msg.value;
+                socket.emit(
+                    'chat message', 
+                    msg 
+                );
+            };
+        </script>
+    </body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "name": "e0",
+  "version": "1.0.0",
+  "description": "Esta primera parte del proyecto sirve para que se familiaricen con la nube donde montarán sus proyectos y creen la aplicación que servirá de base para las entregas siguientes.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iic2173/iic2173-e0-HenryBlairG.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/iic2173/iic2173-e0-HenryBlairG/issues"
+  },
+  "homepage": "https://github.com/iic2173/iic2173-e0-HenryBlairG#readme",
+  "dependencies": {
+    "koa": "^2.13.0",
+    "pg": "^8.3.3",
+    "save": "^2.4.0",
+    "sequelize": "^6.3.5",
+    "socket.io": "^2.3.0"
+  }
+}
