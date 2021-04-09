@@ -1,0 +1,5 @@
+pgdata
+secrets
+node_modules
+.gitignore
+.git
